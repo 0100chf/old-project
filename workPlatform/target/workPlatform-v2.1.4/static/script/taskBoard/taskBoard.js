@@ -1,1 +1,0 @@
-require(["jquery","script/taskBoard/taskEntrance","script/framework/switchingProject"],function(b,c,a){c.init();a.init()});
