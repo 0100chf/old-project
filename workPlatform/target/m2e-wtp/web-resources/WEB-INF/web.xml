@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns="http://java.sun.com/xml/ns/javaee"
+	xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd"
+	id="WebApp_ID" version="3.0">
+	<display-name>workPlatform</display-name>
+
+	<context-param>
+		<param-name>contextConfigLocation</param-name>
+		<param-value>classpath:spring/applicationContext.xml</param-value>
+	</context-param>
+	<context-param>
+		<!--该web.xml�? WEB-INF/web.xml 差异就在profiles.activation,log4jConfigLocation也是�? 其他�?致�?�目的是maven打包可以根据环境参数，自动打�?  -->
+		<!--profiles.activation 参数见pom.xml配置，和profile节点的id�?�?  -->
+         <param-name>spring.profiles.active</param-name>  
+        <param-value>production</param-value>  
+	</context-param>
+		<!-- 改变webAppRootKey的缺省�?�，解决在在同一Tomcat中同时部署多个工程的问题 -->
+	<context-param>
+		<param-name>webAppRootKey</param-name>
+		<param-value>workPlatform.root</param-value>
+	</context-param>
+
+
+
+	<!-- 指定log4j配置文件路径 -->
+	<context-param>
+		<param-name>log4jConfigLocation</param-name>
+		<param-value>classpath:properties/log/log4j.production.properties</param-value>
+	</context-param>
+	<!-- 指定log4j�?测配置文件刷新间隔时�? -->
+	<context-param>
+		<param-name>log4jRefreshInterval</param-name>
+		<param-value>60000</param-value>
+	</context-param>
+	<!-- log4j初始化监听器 -->
+	<listener>
+		<listener-class>org.springframework.web.util.Log4jConfigListener</listener-class>
+	</listener>
+
+	<listener>
+		<listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
+	</listener>
+
+	<!-- shiroFilter -->
+	<filter>
+		<filter-name>shiroFilter</filter-name>
+		<filter-class>org.springframework.web.filter.DelegatingFilterProxy</filter-class>
+	</filter>
+	<filter-mapping>
+		<filter-name>shiroFilter</filter-name>
+		<url-pattern>/*</url-pattern>
+	</filter-mapping>
+	<!-- Spring MVC控制器配�? -->
+	<servlet>
+		<servlet-name>springDispatcher</servlet-name>
+		<servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
+		<init-param>
+			<param-name>contextConfigLocation</param-name>
+			<param-value>classpath:spring/spring-servlet.xml</param-value>
+		</init-param>
+		<load-on-startup>1</load-on-startup>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>springDispatcher</servlet-name>
+		<url-pattern>*.htm</url-pattern>
+	</servlet-mapping>
+
+	<!-- 页面缓存 -->
+	<filter>
+	    <filter-name>PageEhCacheFilter</filter-name>
+	    <filter-class>com.zdksii.pms.common.ehcache.PageEhCacheFilter</filter-class>
+	    <init-param>
+	        <param-name>patterns</param-name>
+	        <!-- 配置你需要缓存的url -->
+	        <param-value>project/loginSuccessToIndex/</param-value>
+	    </init-param>
+	</filter>
+	<filter-mapping>
+		<filter-name>PageEhCacheFilter</filter-name>
+		<url-pattern>*.htm</url-pattern>
+	</filter-mapping>
+	
+	<!-- 编码过滤器配�? -->
+	<filter>
+		<filter-name>encodingFilter</filter-name>
+		<filter-class>org.springframework.web.filter.CharacterEncodingFilter</filter-class>
+		<init-param>
+			<param-name>encoding</param-name>
+			<param-value>UTF-8</param-value>
+		</init-param>
+		<init-param>
+			<param-name>forceEncoding</param-name>
+			<param-value>true</param-value>
+		</init-param>
+	</filter>
+	<filter-mapping>
+		<filter-name>encodingFilter</filter-name>
+		<servlet-name>springDispatcher</servlet-name>
+	</filter-mapping>
+
+	<!-- Spring的OpenSessionInView实现 -->
+	<filter>
+		<filter-name>openSessionInViewFilter</filter-name>
+		<filter-class>org.springframework.orm.hibernate4.support.OpenSessionInViewFilter</filter-class>
+		<!-- singleSession默认为true,若设为false则等于没用OpenSessionInView -->
+		<init-param>
+			<param-name>singleSession</param-name>
+			<param-value>true</param-value>
+		</init-param>
+		<!-- 指定org.springframework.orm.hibernate4.LocalSessionFactoryBean在spring配置文件中的名称,默认值为sessionFactory�? 
+			如果LocalSessionFactoryBean在spring中的名称不是sessionFactory,该参数一定要指定,否则会出现找不到sessionFactory的例外�?�所以默认可以不�? -->
+		<init-param>
+			<param-name>sessionFactoryBean</param-name>
+			<param-value>sessionFactory</param-value>
+		</init-param>
+	</filter>
+	<filter-mapping>
+		<filter-name>openSessionInViewFilter</filter-name>
+		<url-pattern>/*</url-pattern>
+	</filter-mapping>
+
+
+	<!-- version Servlet -->
+	<servlet>
+		<servlet-name>versionServlet</servlet-name>
+		<servlet-class>com.zdksii.pms.common.version.VersionServlet</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>versionServlet</servlet-name>
+		<url-pattern>/version</url-pattern>
+	</servlet-mapping>
+	<jsp-config>
+		<taglib>
+			<taglib-uri>http://pms.zdksii.com/mytag</taglib-uri>
+			<taglib-location>/WEB-INF/resource/tld/myshiro.tld</taglib-location>
+		</taglib>
+		<taglib>
+			<taglib-uri>/enum</taglib-uri>
+			<taglib-location>/WEB-INF/resource/tld/enumsTag.tld</taglib-location>
+		</taglib>
+		<taglib>
+			<taglib-uri>/status</taglib-uri>
+			<taglib-location>/WEB-INF/resource/tld/proStatusTag.tld</taglib-location>
+		</taglib>
+	</jsp-config>
+
+	<error-page>
+		<error-code>404</error-code>
+		<location>/WEB-INF/resource/jsp/error/exceptionPage.jsp</location>
+	</error-page>
+</web-app>
